@@ -36,7 +36,7 @@ namespace ProcKillerService
                 });
                 x.EnableServiceRecovery(r => r.RestartService(TimeSpan.FromSeconds(5)));
                 x.SetServiceName("Process Killer Service");
-                x.SetDescription($"Process Killer Service - Monitors and kills specified process. Configured to kill:\"{name}\".");
+                x.SetDescription($"Process Killer Service - Monitors and kills the specified process. Configured to kill:\"{name}\".");
                 x.StartAutomatically();
             });
         }
