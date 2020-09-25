@@ -11,11 +11,11 @@ Simple app/service that monitors running processes in the system and kills the s
 
 ## Run
 
-`ProcKillerService.exe run -name:"Specify process name"`
+`ProcKillerService.exe run -name:"Specify process name without .exe"`
 
 ## Install as service
 
-`ProcKillerService.exe install -name:"Specify process name"` and to run the service after installation `ProcKillerService.exe start`
+`ProcKillerService.exe install -name:"Specify process name without .exe"` and to run the service after installation `ProcKillerService.exe start`
 
  ### Example
 
