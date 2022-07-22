@@ -1,6 +1,7 @@
 ﻿using System;
-using Microsoft.Win32;
 using Topshelf;
+using ProcKillerService.Bootstrap;
+using Serilog;
 
 namespace ProcKillerService
 {
@@ -8,36 +9,19 @@ namespace ProcKillerService
     {
         static void Main(string[] args)
         {
-            var name = string.Empty;
-
             HostFactory.Run(x =>
             {
-                x.AddCommandLineDefinition("name", p =>
+                x.Service<Services.ProcKillerService>(s =>
                 {
-                    name = p;
-                });
-                x.ApplyCommandLine();
-                x.AfterInstall(ihc =>
-                {
-                    //save process name in registry
-                    using var system = Registry.LocalMachine.OpenSubKey("System");
-                    using var currentControlSet = system.OpenSubKey("CurrentControlSet");
-                    using var services = currentControlSet.OpenSubKey("Services");
-                    using var service = services.OpenSubKey(ihc.ServiceName, true);
-                    const string v = "ImagePath";
-                    var imagePath = (string)service.GetValue(v);
-                    service.SetValue(v, imagePath + $" -name:\"{name}\" ");
-                });
-                x.Service<ProcKillerService>(s =>
-                {
-                    s.ConstructUsing(v => new ProcKillerService(name));
+                    s.ConstructUsing(v => Bootstrapper.InitApp<Services.ProcKillerService>());
                     s.WhenStarted(tc => tc.Start());
                     s.WhenStopped(tc => tc.Stop());
                 });
                 x.EnableServiceRecovery(r => r.RestartService(TimeSpan.FromSeconds(5)));
-                x.SetServiceName("Process Killer Service");
-                x.SetDescription($"Process Killer Service - Monitors and kills the specified process. Configured to kill:\"{name}\".");
+                x.SetServiceName(Constants.AppName);
+                x.SetDescription(Constants.AppDescription);
                 x.StartAutomatically();
+                x.OnException(e => Log.Error(e, "Failed to initialize the app"));
             });
         }
     }

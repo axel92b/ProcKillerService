@@ -1,20 +1,29 @@
-﻿using System;
+﻿using ProcKillerService.Providers;
+using Serilog;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ProcKillerService
+namespace ProcKillerService.Services
 {
     class ProcKillerService
     {
         private Task _monitorTask;
         private CancellationTokenSource _cts;
         private readonly string _processName;
+        private readonly int _monitoringFrequency;
 
-        public ProcKillerService(string processName)
+        public ProcKillerService(SettingsProvider settingsProvider)
         {
-            _processName = processName;
+            var settings = settingsProvider.Settings;
+            if (!settings.AreValid())
+            {
+                throw new ArgumentException("Settings are not valid, can't proceed");
+            }
+            _processName = settings.ProcessName;
+            _monitoringFrequency = settings.MonitoringFrequency;
         }
 
         public bool Start()
@@ -53,9 +62,17 @@ namespace ProcKillerService
         {
             while (!token.IsCancellationRequested)
             {
-                Process.GetProcesses().Where(pr => pr.ProcessName.Equals(_processName, StringComparison.OrdinalIgnoreCase)).AsParallel()
-                    .ForAll(x => x.Kill());
-                await Task.Delay(1000, token);
+                try
+                {
+                    Process.GetProcesses().Where(pr => pr.ProcessName.Equals(_processName, StringComparison.OrdinalIgnoreCase)).AsParallel()
+                                .ForAll(x => x.Kill());
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, $"Failed to close some or all instances of {_processName}");
+                    throw;
+                }
+                await Task.Delay(_monitoringFrequency, token);
             }
             token.ThrowIfCancellationRequested();
         }
