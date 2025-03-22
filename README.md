@@ -11,12 +11,9 @@ Simple app/service that monitors running processes in the system and kills the s
 
 ## Run
 
-`ProcKillerService.exe run -name:"Specify process name without .exe"`
+`ProcKillerService.exe run`
 
 ## Install as service
 
-`ProcKillerService.exe install -name:"Specify process name without .exe"` and to run the service after installation `ProcKillerService.exe start`
-
- ### Example
-
-`ProcKillerService.exe install -name:"CompatTelRunner"`
+`ProcKillerService.exe install` and to run the service after installation `ProcKillerService.exe start`
+After first run, open C:\ProgramData\Axel\ProcessKillerService\settings.json and set the process name that you want to kill.
